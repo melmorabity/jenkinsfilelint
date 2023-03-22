@@ -1,0 +1,8 @@
+---
+- id: jenkinsfilelint
+  name: jenkinsfilelint
+  description: Jenkins declarative pipeline linter
+  entry: jenkinsfilelint
+  language: python
+  files: (?i)(^|/)Jenkinsfile[^/]*$
+  require_serial: true

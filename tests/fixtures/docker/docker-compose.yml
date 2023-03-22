@@ -1,0 +1,36 @@
+---
+version: '3'
+services:
+  jenkins:
+    build:
+      context: jenkins
+      dockerfile: Dockerfile
+    container_name: jenkinsfilelint-jenkins
+    ports:
+      - 18080:8080
+    environment:
+      JENKINS_USERNAME: jenkins
+      JENKINS_PASSWORD: j3nk1n5
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "--fail",
+          "http://localhost:8080/login"
+        ]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+      start_period: 3s
+  nginx:
+    depends_on:
+      jenkins:
+        condition: service_healthy
+    build:
+      context: nginx
+      dockerfile: Dockerfile
+    container_name: jenkinsfilelint-nginx
+    ports:
+      - 8080:8080
+      - 8443:8443

@@ -1,0 +1,160 @@
+[project]
+authors = [
+  { name = "Mohamed El Morabity", email = "melmorabity@fedoraproject.org" },
+]
+classifiers = ["Programming Language :: Python :: 3"]
+dependencies = ["requests"]
+description = "Jenkinsfile declarative pipeline linter"
+keywords = ["jenkins", "jenkinsfile", "lint", "linter", "validate", "validator"]
+license = { text = "GPL-3.0-or-later" }
+name = "jenkinsfilelint"
+readme = "README.md"
+requires-python = ">=3.8"
+version = "1.0.0"
+
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools"]
+
+[project.scripts]
+jenkinsfilelint = "jenkinsfilelint.cli:main"
+
+[project.optional-dependencies]
+dev = [
+  "Flake8-pyproject",
+  "bandit",
+  "black",
+  "flake8",
+  "jenkinsfilelint[test]",
+  "mypy",
+  "pre-commit",
+  "pydocstyle[toml]",
+  "pylint",
+  "pylint-per-file-ignores",
+  "ruff",
+  "types-requests",
+  "types-setuptools",
+  "types-six",
+]
+test = ["pytest", "pytest-cov", "requests-mock", "tox"]
+
+[tool.setuptools]
+packages = ["jenkinsfilelint"]
+
+[tool.bandit]
+exclude_dirs = [".tox", ".venv", "build", "tests"]
+
+[tool.black]
+line-length = 79
+skip_magic_trailing_comma = true
+target-version = ["py38"]
+
+[tool.coverage.run]
+omit = ["tests/*"]
+
+[tool.flake8]
+exclude = [".tox", ".venv", "build"]
+max-line-length = 79
+
+[tool.isort]
+force_single_line = true
+force_sort_within_sections = true
+line_length = 79
+profile = "black"
+py_version = 38
+
+[tool.mypy]
+exclude = ["build"]
+python_version = "3.8"
+strict = true
+strict_optional = true
+
+[tool.pydocstyle]
+convention = "google"
+match_dir = "^(?!build$|tests$|\\.).*$"
+
+[tool.pylint.main]
+py-version = "3.8"
+
+[tool.pylint.master]
+ignore = [".tox", ".venv", "build"]
+load-plugins = ["pylint_per_file_ignores"]
+
+[tool.pylint.format]
+max-line-length = 79
+
+[tool.pylint.messages_control]
+disable = ["too-few-public-methods", "too-many-arguments", "too-many-locals"]
+
+[tool.pylint-per-file-ignores]
+tests = "missing-class-docstring,missing-function-docstring,missing-module-docstring,protected-access"
+
+[tool.pytest.ini_options]
+addopts = [
+  "--cov-report=term-missing",
+  "--cov-report=xml",
+  "--cov=jenkinsfilelint",
+]
+
+[tool.ruff]
+ignore = [
+  "ANN101",  # flake8-annotations
+  "COM812",  # flake8-commas
+  "EM102",   # flake8-errmsg
+  "FBT",     # flake8-boolean-trap
+  "PLR0913", # pylint
+  "PT009",   # flake8-pytest-style
+  "T201",    # flake8-print
+  "TRY",     # tryceratops
+]
+line-length = 79
+select = ["ALL"]
+target-version = "py38"
+
+[tool.ruff.flake8-type-checking]
+strict = true
+
+[tool.ruff.isort]
+force-single-line = true
+force-sort-within-sections = true
+
+[tool.ruff.per-file-ignores]
+"tests/*" = [
+  "D",      # pydocstyle
+  "S105",   # flake8-bandit
+  "S106",   # flake8-bandit
+  "S603",   # flake8-bandit
+  "S607",   # flake8-bandit
+  "SLF001", # flake8-self
+]
+
+[tool.ruff.pydocstyle]
+convention = "google"
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+min_version = 4.0
+envlist = py38,py39,py310,py311
+skip_missing_interpreters = True
+
+[testenv]
+deps = -e .[test]
+commands =
+  pytest --ignore-glob=tests/test_acceptance_*.py
+
+[testenv:lint]
+deps = -e .[dev]
+commands =
+  pre-commit run -a
+
+[testenv:acceptance]
+deps = -e .[test]
+allowlist_externals = docker-compose
+commands_pre =
+  docker-compose --file tests/fixtures/docker/docker-compose.yml up --build --detach
+commands =
+  pytest --ignore-glob=tests/test_unit_*.py
+commands_post =
+  docker-compose --file tests/fixtures/docker/docker-compose.yml down
+"""
